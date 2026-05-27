@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Music Player</title>
+    <style>
+        /* --- デザイン設定 (CSS) --- */
+        :root {
+            --primary-color: #d8b46a;
+            --accent-color: #6fb7b2;
+            --surface-color: rgba(24, 27, 32, 0.84);
+            --surface-soft: rgba(255, 255, 255, 0.07);
+            --surface-hover: rgba(255, 255, 255, 0.12);
+            --line-color: rgba(255, 255, 255, 0.14);
+            --text-color: #f7f2e8;
+            --muted-color: #b9b2a6;
+            --bg-gradient:
+                radial-gradient(circle at 15% 20%, rgba(111, 183, 178, 0.28), transparent 34%),
+                radial-gradient(circle at 85% 12%, rgba(216, 180, 106, 0.2), transparent 30%),
+                linear-gradient(145deg, #111315 0%, #1f2226 48%, #0e1012 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+            padding: 24px;
+        }
+
+        .appframe {
+            position: relative;
+            background: var(--surface-color);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            width: min(420px, 100%);
+            padding: 28px;
+            border-radius: 8px;
+            border: 1px solid var(--line-color);
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .appframe::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-top: 2px solid rgba(216, 180, 106, 0.72);
+            pointer-events: none;
+        }
+
+        h1 {
+            font-size: 1.15rem;
+            margin: 0 0 24px;
+            font-weight: 600;
+            letter-spacing: 0;
+            color: var(--primary-color);
+            text-transform: uppercase;
+        }
+
+        /* アートワーク部分 */
+        .visualizer {
+            width: 156px;
+            height: 156px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 8px solid rgba(255, 255, 255, 0.08);
+            outline: 1px solid rgba(216, 180, 106, 0.34);
+            box-shadow:
+                0 18px 36px rgba(0, 0, 0, 0.38),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+            transition: transform 0.5s ease;
+        }
+
+        .visualizer img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 再生中に画像を回転させるクラス (JSで制御可能) */
+        .playing-art {
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* オーディオプレイヤーのカスタマイズ */
+        audio {
+            width: 100%;
+            height: 42px;
+            margin-bottom: 22px;
+            accent-color: var(--primary-color);
+            filter: sepia(10%) saturate(85%) brightness(0.92);
+        }
+
+        .controls-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 0.86rem;
+            margin: 0 0 18px;
+            color: var(--muted-color);
+        }
+
+        #random {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 700;
+            border: 1px solid var(--line-color);
+            padding: 8px 13px;
+            border-radius: 999px;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            white-space: nowrap;
+        }
+
+        #random:hover,
+        #random.is-active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #161616;
+            box-shadow: 0 8px 24px rgba(216, 180, 106, 0.2);
+        }
+
+        /* プレイリスト */
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 218px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        /* スクロールバーのカスタマイズ */
+        ul::-webkit-scrollbar {
+            width: 5px;
+        }
+        ul::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+
+        li {
+            padding: 13px 14px;
+            margin-bottom: 8px;
+            background: var(--surface-soft);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            display: flex;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-color);
+        }
+
+        li:hover {
+            background: var(--surface-hover);
+            transform: translateX(3px);
+        }
+
+        li::before {
+            content: '♪';
+            font-size: 0.7rem;
+            width: 20px;
+            margin-right: 8px;
+            color: var(--muted-color);
+        }
+
+        li.active {
+            background: rgba(216, 180, 106, 0.14);
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        li.active::before {
+            content: '●';
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 460px) {
+            .appframe {
+                padding: 24px 20px;
+            }
+
+            .controls-info {
+                align-items: stretch;
+                flex-direction: column;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="appframe">
+        <h1>Music Player</h1>
+        
+        <div class="visualizer" id="artWrapper">
+            <img id="statusImg" src="stop.png" alt="再生状態">
+        </div>
+
+        <audio id="mainAudio" src="bgm1.mp3" controls></audio>
+        
+        <p class="controls-info">
+            <span>Select a track</span>
+            <a id="random" href="#" role="button" aria-pressed="false">Random</a>
+        </p>
+
+        <ul id="playlist">
+            <li data-file="AIZO.mp3" class="active"></li>
+            <li data-file="BLUE TEARS_JUDY AND MARY.mp3"></li>
+            <li data-file="breakfast_Mrs. GREEN APPLE.mp3"></li>
+            <li data-file="DEPARTURES_globe.mp3"></li>
+            <li data-file="IRIS OUT.mp3"></li>
+            <li data-file="LOVER SOUL_JUDY AND MARY.mp3"></li>
+            <li data-file="SPECIALZ.mp3"></li>
+            <li data-file="あいのうた_Swallowtail Butterfly.mp3"></li>
+            <li data-file="ギブス_椎名林檎.mp3"></li>
+            <li data-file="きらり_藤井風.mp3"></li>
+            <li data-file="シルエット.mp3"></li>
+            <li data-file="ダンスホール_Mrs. GREEN APPLE.mp3"></li>
+            <li data-file="なんなん_藤井風.mp3"></li>
+            <li data-file="ライラック_Mrs. GREEN APPLE.mp3"></li>
+            <li data-file="花_藤井風.mp3"></li>
+            <li data-file="廻廻奇譚.mp3"></li>
+            <li data-file="幸福論_椎名林檎.mp3"></li>
+            <li data-file="新宝島_サカナクション.mp3"></li>
+            <li data-file="青と夏_Mrs. GREEN APPLE.mp3"></li>
+            <li data-file="青のすみか.mp3"></li>
+            <li data-file="僕と花_サカナクション.mp3"></li>
+            <li data-file="夜に駆ける.mp3"></li>
+            <li data-file="夜の踊り子_サカナクション.mp3"></li>
+        </ul>
+    </div>
+
+    <script>
+        /* --- ロジック設定 (JS) --- */
+        const audio = document.getElementById('mainAudio');
+        const listitems = document.querySelectorAll('li');
+        const img = document.getElementById('statusImg');
+        const artWrapper = document.getElementById('artWrapper');
+        const randomBtn = document.querySelector('#random');
+        let isRandomMode = false;
+
+        function getTrackName(file) {
+            const filename = file.split('/').pop().split('\\').pop();
+            return filename.replace(/\.[^/.]+$/, '');
+        }
+
+        // プレイリストのクリックイベント
+        listitems.forEach(item => {
+            item.textContent = getTrackName(item.dataset.file);
+
+            item.addEventListener('click', () => {
+                playMusic(item);
+            });
+        });
+
+        function playMusic(li) {
+            const file = li.getAttribute('data-file');
+            audio.setAttribute('src', file);
+            audio.play();
+            
+            // activeな項目を変更
+            document.querySelector('.active').classList.remove('active');
+            li.classList.add('active');
+        }
+
+        // 再生時の処理
+        audio.addEventListener('play', () => {
+            img.setAttribute('src', 'play.png');
+            artWrapper.classList.add('playing-art'); // 画像を回転させる
+        });
+
+        // 停止時の処理
+        audio.addEventListener('pause', () => {
+            img.setAttribute('src', 'stop.png');
+            artWrapper.classList.remove('playing-art');
+        });
+
+        // 曲が終わった時
+        audio.addEventListener('ended', () => {
+            img.setAttribute('src', 'stop.png');
+            artWrapper.classList.remove('playing-art');
+            
+            // ランダムモード中は次曲ではなくランダムな曲へ
+            const activeLi = document.querySelector('.active');
+            if (isRandomMode) {
+                playMusic(getRandomTrack(activeLi));
+                return;
+            }
+
+            // 次の曲へ
+            if (activeLi.nextElementSibling) {
+                playMusic(activeLi.nextElementSibling);
+            }
+        });
+
+        function getRandomTrack(currentLi) {
+            if (listitems.length <= 1) {
+                return currentLi;
+            }
+
+            let randomLi;
+            do {
+                const rnd = Math.floor(Math.random() * listitems.length);
+                randomLi = listitems[rnd];
+            } while (randomLi === currentLi);
+
+            return randomLi;
+        }
+
+        // ランダムモード切替
+        randomBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            isRandomMode = !isRandomMode;
+            randomBtn.classList.toggle('is-active', isRandomMode);
+            randomBtn.setAttribute('aria-pressed', String(isRandomMode));
+        });
+    </script>
+</body>
+</html>
