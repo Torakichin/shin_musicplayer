@@ -7,18 +7,19 @@
     <style>
         /* --- デザイン設定 (CSS) --- */
         :root {
-            --primary-color: #d8b46a;
-            --accent-color: #6fb7b2;
-            --surface-color: rgba(24, 27, 32, 0.84);
-            --surface-soft: rgba(255, 255, 255, 0.07);
-            --surface-hover: rgba(255, 255, 255, 0.12);
-            --line-color: rgba(255, 255, 255, 0.14);
-            --text-color: #f7f2e8;
-            --muted-color: #b9b2a6;
-            --bg-gradient:
-                radial-gradient(circle at 15% 20%, rgba(111, 183, 178, 0.28), transparent 34%),
-                radial-gradient(circle at 85% 12%, rgba(216, 180, 106, 0.2), transparent 30%),
-                linear-gradient(145deg, #111315 0%, #1f2226 48%, #0e1012 100%);
+            --primary-color: #a68b4c; /* 少し濃い目のゴールド（白背景用） */
+            --accent-color: #4a8d88;
+            --surface-color: rgba(255, 255, 255, 0.9);
+            /* 文字色を白背景でも見えるように変更 */
+            --text-color: #222222; 
+            --muted-color: #555555;
+            --line-color: rgba(0, 0, 0, 0.1);
+            
+            /* プレイリスト専用の色（黒基調） */
+            --playlist-bg: rgba(0, 0, 0, 0.75); /* 曲名ゾーンのみの黒背景 */
+            --playlist-text: #ffffff;
+            
+            --bg-gradient: linear-gradient(145deg, #f0f0f0 0%, #e0e0e0 100%);
         }
 
         * {
@@ -46,33 +47,33 @@
 
         .appframe {
             position: relative;
-            background: var(--surface-color);
-            backdrop-filter: blur(22px);
-            -webkit-backdrop-filter: blur(22px);
+            /* 背景の上の黒を完全に透明に（urlのみにする） */
+            background: url("back.JPG");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            
+            /* 背景が白すぎる場合のために少しだけぼかしを維持 */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            
             width: min(420px, 100%);
             padding: 28px;
-            border-radius: 8px;
-            border: 1px solid var(--line-color);
-            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
             text-align: center;
             overflow: hidden;
-        }
-
-        .appframe::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-top: 2px solid rgba(216, 180, 106, 0.72);
-            pointer-events: none;
         }
 
         h1 {
             font-size: 1.15rem;
             margin: 0 0 24px;
-            font-weight: 600;
-            letter-spacing: 0;
-            color: var(--primary-color);
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            color: var(--text-color);
             text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255,255,255,0.8); /* 白背景でも埋もれないように */
         }
 
         /* アートワーク部分 */
@@ -82,11 +83,8 @@
             margin: 0 auto 24px;
             border-radius: 50%;
             overflow: hidden;
-            border: 8px solid rgba(255, 255, 255, 0.08);
-            outline: 1px solid rgba(216, 180, 106, 0.34);
-            box-shadow:
-                0 18px 36px rgba(0, 0, 0, 0.38),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+            border: 4px solid #fff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             transition: transform 0.5s ease;
         }
 
@@ -96,7 +94,7 @@
             object-fit: cover;
         }
 
-        /* 再生中に画像を回転させるクラス (JSで制御可能) */
+        /* 再生中に画像を回転させるクラス */
         .playing-art {
             animation: rotate 10s linear infinite;
         }
@@ -112,7 +110,8 @@
             height: 42px;
             margin-bottom: 22px;
             accent-color: var(--primary-color);
-            filter: sepia(10%) saturate(85%) brightness(0.92);
+            /* 白背景で見えやすいように明るさを調整 */
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
 
         .controls-info {
@@ -122,71 +121,66 @@
             gap: 12px;
             font-size: 0.86rem;
             margin: 0 0 18px;
-            color: var(--muted-color);
+            color: var(--text-color);
+            font-weight: 600;
         }
 
         #random {
             color: var(--text-color);
             text-decoration: none;
             font-weight: 700;
-            border: 1px solid var(--line-color);
-            padding: 8px 13px;
+            border: 2px solid var(--text-color);
+            padding: 6px 16px;
             border-radius: 999px;
-            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-            white-space: nowrap;
-            touch-action: manipulation;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.5);
         }
 
         #random.is-active {
-            background: var(--primary-color);
-            border-color: var(--primary-color);
-            color: #161616;
-            box-shadow: 0 8px 24px rgba(216, 180, 106, 0.2);
+            background: var(--text-color);
+            color: #fff;
         }
 
-        @media (hover: hover) {
-            #random:hover {
-                background: var(--primary-color);
-                border-color: var(--primary-color);
-                color: #161616;
-                box-shadow: 0 8px 24px rgba(216, 180, 106, 0.2);
-            }
-        }
-
-        /* プレイリスト */
+        /* プレイリスト（ここを黒基調に変更） */
         ul {
             list-style: none;
-            padding: 0;
+            padding: 12px;
             margin: 0;
-            max-height: 218px;
+            max-height: 240px;
             overflow-y: auto;
             text-align: left;
+            
+            /* 曲名ゾーンのみ背景を黒くし、透過率を下げる */
+            background: var(--playlist-bg);
+            border-radius: 12px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
         }
 
         /* スクロールバーのカスタマイズ */
         ul::-webkit-scrollbar {
-            width: 5px;
+            width: 4px;
         }
         ul::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.3);
             border-radius: 10px;
         }
 
         li {
-            padding: 13px 14px;
-            margin-bottom: 8px;
-            background: var(--surface-soft);
+            padding: 12px 14px;
+            margin-bottom: 6px;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             cursor: pointer;
-            transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--playlist-text); /* 文字を白に */
+            font-size: 0.9rem;
         }
 
         li:hover {
-            background: var(--surface-hover);
+            background: rgba(255, 255, 255, 0.2);
             transform: translateX(3px);
         }
 
@@ -195,63 +189,42 @@
             font-size: 0.7rem;
             width: 20px;
             margin-right: 8px;
-            color: var(--muted-color);
+            opacity: 0.6;
         }
 
         li.active {
-            background: rgba(216, 180, 106, 0.14);
+            background: var(--primary-color);
             border: 1px solid var(--primary-color);
-            color: var(--primary-color);
+            color: #ffffff;
             font-weight: 700;
         }
 
         li.active::before {
             content: '●';
-            color: var(--primary-color);
+            color: #ffffff;
+            opacity: 1;
         }
 
         @media (max-width: 460px) {
             body {
                 align-items: stretch;
                 justify-content: flex-start;
-                min-height: 100svh;
                 padding: 0;
-                overflow: hidden;
             }
 
             .appframe {
-                display: flex;
-                flex-direction: column;
                 width: 100%;
-                min-height: 100svh;
-                padding: 24px 20px max(20px, env(safe-area-inset-bottom));
-                border: 0;
+                height: 100vh;
                 border-radius: 0;
-                box-shadow: none;
+                padding-top: 40px;
             }
-
-            .controls-info {
-                align-items: stretch;
-                flex-direction: column;
-            }
-
-            .visualizer {
-                width: 132px;
-                height: 132px;
+            
+            ul {
+                max-height: none;
+                flex: 1;
                 margin-bottom: 20px;
             }
-
-            ul {
-                flex: 1;
-                min-height: 0;
-                max-height: none;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-                overscroll-behavior: contain;
-                padding-bottom: 4px;
-            }
         }
-
     </style>
 </head>
 <body>
@@ -260,10 +233,10 @@
         <h1>Music Player</h1>
         
         <div class="visualizer" id="artWrapper">
-            <img id="statusImg" src="stop.png" alt="再生状態">
+            <img id="statusImg" src="stop.jpg" alt="再生状態">
         </div>
 
-        <audio id="mainAudio" src="bgm1.mp3" controls></audio>
+        <audio id="mainAudio" controls preload="metadata"></audio>
         
         <p class="controls-info">
             <span>Select a track</span>
@@ -271,116 +244,135 @@
         </p>
 
         <ul id="playlist">
-            <li data-file="AIZO.mp3" class="active"></li>
-            <li data-file="BLUE TEARS_JUDY AND MARY.mp3"></li>
+            <li data-file="廻廻奇譚_Eve.mp3" class="active"></li>
+            <li data-file="青のすみか_キタニタツヤ.mp3"></li>
+
+            <li data-file="SPECIALZAIZO_King Gnu.mp3"></li>
+            <li data-file="AIZO_King Gnu.mp3"></li>
+            <li data-file="逆夢_King Gnu.mp3"></li>
+            <li data-file="一途_King Gnu.mp3"></li>
+            <li data-file="カメレオン_King Gnu.mp3"></li>
+
+            <li data-file="IRIS OUT_米津玄師.mp3"></li>
+
+            <li data-file="Soranji_Mrs. GREEN APPLE.mp3"></li>
+            <li data-file="クスシキ_Mrs. GREEN APPLE.mp3"></li>
+            <li data-file="ダーリン_Mrs. GREEN APPLE.mp3"></li>
             <li data-file="breakfast_Mrs. GREEN APPLE.mp3"></li>
+            <li data-file="ダンスホール_Mrs. GREEN APPLE.mp3"></li>
+            <li data-file="ライラック_Mrs. GREEN APPLE.mp3"></li>
+            <li data-file="青と夏_Mrs. GREEN APPLE.mp3"></li>
+
+            <li data-file="まつり_藤井風.mp3"></li>
+            <li data-file="Garden_藤井風.mp3"></li>
+            <li data-file="きらり_藤井風.mp3"></li>
+            <li data-file="なんなん_藤井風.mp3"></li>
+            <li data-file="花_藤井風.mp3"></li>
+
+            <li data-file="Subtitle_ Official髭男dism.mp3"></li>
+            <li data-file="CITRUS_Da-iCE.mp3"></li>
+            <li data-file="点描の唄_井上苑子.mp3"></li>
+            <li data-file="Funny Bunny - pillows.mp3"></li>
+
             <li data-file="DEPARTURES_globe.mp3"></li>
-            <li data-file="IRIS OUT.mp3"></li>
+            <li data-file="BLUE TEARS_JUDY AND MARY.mp3"></li>
             <li data-file="LOVER SOUL_JUDY AND MARY.mp3"></li>
-            <li data-file="SPECIALZ.mp3"></li>
             <li data-file="あいのうた_Swallowtail Butterfly.mp3"></li>
             <li data-file="ギブス_椎名林檎.mp3"></li>
-            <li data-file="きらり_藤井風.mp3"></li>
-            <li data-file="シルエット.mp3"></li>
-            <li data-file="ダンスホール_Mrs. GREEN APPLE.mp3"></li>
-            <li data-file="なんなん_藤井風.mp3"></li>
-            <li data-file="ライラック_Mrs. GREEN APPLE.mp3"></li>
-            <li data-file="花_藤井風.mp3"></li>
-            <li data-file="廻廻奇譚.mp3"></li>
             <li data-file="幸福論_椎名林檎.mp3"></li>
             <li data-file="新宝島_サカナクション.mp3"></li>
-            <li data-file="青と夏_Mrs. GREEN APPLE.mp3"></li>
-            <li data-file="青のすみか.mp3"></li>
             <li data-file="僕と花_サカナクション.mp3"></li>
-            <li data-file="夜に駆ける.mp3"></li>
             <li data-file="夜の踊り子_サカナクション.mp3"></li>
+            <li data-file="シルエット_カナブーン.mp3"></li>
+            <li data-file="夜に駆ける_YOASOBI.mp3"></li>
         </ul>
     </div>
 
-    <script>
-        /* --- ロジック設定 (JS) --- */
-        const audio = document.getElementById('mainAudio');
-        const listitems = document.querySelectorAll('li');
-        const img = document.getElementById('statusImg');
-        const artWrapper = document.getElementById('artWrapper');
-        const randomBtn = document.querySelector('#random');
-        let isRandomMode = false;
+<script>
+/* JS部分は元の動作を維持 */
+const audio = document.getElementById('mainAudio');
+const listitems = document.querySelectorAll('li');
+const img = document.getElementById('statusImg');
+const artWrapper = document.getElementById('artWrapper');
+const randomBtn = document.querySelector('#random');
 
-        function getTrackName(file) {
-            const filename = file.split('/').pop().split('\\').pop();
-            return filename.replace(/\.[^/.]+$/, '');
+let isRandomMode = false;
+
+function getTrackName(file) {
+    const filename = file.split('/').pop().split('\\').pop();
+    return filename.replace(/\.[^/.]+$/, '');
+}
+
+listitems.forEach(item => {
+    item.textContent = getTrackName(item.dataset.file);
+    item.addEventListener('click', () => playMusic(item));
+});
+
+window.addEventListener('load', () => {
+    const firstTrack = document.querySelector('li.active');
+    if (firstTrack) {
+        audio.src = firstTrack.dataset.file;
+        audio.load();
+    }
+});
+
+async function playMusic(li) {
+    const file = li.dataset.file;
+    const current = document.querySelector('.active');
+    if (current) current.classList.remove('active');
+    li.classList.add('active');
+
+    try {
+        if (!audio.src.endsWith(file)) {
+            audio.src = file;
+            audio.load();
         }
+        await audio.play();
+    } catch (err) {
+        console.log('Play Error:', err);
+    }
+}
 
-        // プレイリストのクリックイベント
-        listitems.forEach(item => {
-            item.textContent = getTrackName(item.dataset.file);
+audio.addEventListener('play', () => {
+    img.src = 'play.jpg';
+    artWrapper.classList.add('playing-art');
+});
 
-            item.addEventListener('click', () => {
-                playMusic(item);
-            });
-        });
+audio.addEventListener('pause', () => {
+    img.src = 'stop.jpg';
+    artWrapper.classList.remove('playing-art');
+});
 
-        function playMusic(li) {
-            const file = li.getAttribute('data-file');
-            audio.setAttribute('src', file);
-            audio.play();
-            
-            // activeな項目を変更
-            document.querySelector('.active').classList.remove('active');
-            li.classList.add('active');
-        }
+audio.addEventListener('ended', () => {
+    img.src = 'stop.jpg';
+    artWrapper.classList.remove('playing-art');
+    const activeLi = document.querySelector('.active');
+    if (isRandomMode) {
+        playMusic(getRandomTrack(activeLi));
+        return;
+    }
+    if (activeLi && activeLi.nextElementSibling) {
+        playMusic(activeLi.nextElementSibling);
+    }
+});
 
-        // 再生時の処理
-        audio.addEventListener('play', () => {
-            img.setAttribute('src', 'play.png');
-            artWrapper.classList.add('playing-art'); // 画像を回転させる
-        });
+function getRandomTrack(currentLi) {
+    if (listitems.length <= 1) return currentLi;
+    let randomLi;
+    do {
+        const rnd = Math.floor(Math.random() * listitems.length);
+        randomLi = listitems[rnd];
+    } while (randomLi === currentLi);
+    return randomLi;
+}
 
-        // 停止時の処理
-        audio.addEventListener('pause', () => {
-            img.setAttribute('src', 'stop.png');
-            artWrapper.classList.remove('playing-art');
-        });
+randomBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    isRandomMode = !isRandomMode;
+    randomBtn.classList.toggle('is-active', isRandomMode);
+    randomBtn.setAttribute('aria-pressed', String(isRandomMode));
+});
+</script>
 
-        // 曲が終わった時
-        audio.addEventListener('ended', () => {
-            img.setAttribute('src', 'stop.png');
-            artWrapper.classList.remove('playing-art');
-            
-            // ランダムモード中は次曲ではなくランダムな曲へ
-            const activeLi = document.querySelector('.active');
-            if (isRandomMode) {
-                playMusic(getRandomTrack(activeLi));
-                return;
-            }
-
-            // 次の曲へ
-            if (activeLi.nextElementSibling) {
-                playMusic(activeLi.nextElementSibling);
-            }
-        });
-
-        function getRandomTrack(currentLi) {
-            if (listitems.length <= 1) {
-                return currentLi;
-            }
-
-            let randomLi;
-            do {
-                const rnd = Math.floor(Math.random() * listitems.length);
-                randomLi = listitems[rnd];
-            } while (randomLi === currentLi);
-
-            return randomLi;
-        }
-
-        // ランダムモード切替
-        randomBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            isRandomMode = !isRandomMode;
-            randomBtn.classList.toggle('is-active', isRandomMode);
-            randomBtn.setAttribute('aria-pressed', String(isRandomMode));
-        });
-    </script>
 </body>
 </html>
