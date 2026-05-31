@@ -2,21 +2,20 @@
 <html lang="ja">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Modern Music Player</title>
     <style>
         /* --- デザイン設定 (CSS) --- */
         :root {
-            --primary-color: #a68b4c; /* 少し濃い目のゴールド（白背景用） */
+            --primary-color: #a68b4c; 
             --accent-color: #4a8d88;
             --surface-color: rgba(255, 255, 255, 0.9);
-            /* 文字色を白背景でも見えるように変更 */
             --text-color: #222222; 
             --muted-color: #555555;
             --line-color: rgba(0, 0, 0, 0.1);
             
             /* プレイリスト専用の色（黒基調） */
-            --playlist-bg: rgba(0, 0, 0, 0.75); /* 曲名ゾーンのみの黒背景 */
+            --playlist-bg: rgba(0, 0, 0, 0.75); 
             --playlist-text: #ffffff;
             
             --bg-gradient: linear-gradient(145deg, #f0f0f0 0%, #e0e0e0 100%);
@@ -24,36 +23,36 @@
 
         * {
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* タップ時の青枠防止 */
         }
 
         html,
         body {
             height: 100%;
+            margin: 0;
+            padding: 0;
+            /* iPhoneのバウンススクロールによるガタつきを防止 */
+            overflow: hidden; 
         }
 
         body {
-            margin: 0;
             font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
             background: var(--bg-gradient);
             background-attachment: fixed;
-            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--text-color);
-            padding: 24px;
-            overflow: hidden;
         }
 
         .appframe {
             position: relative;
-            /* 背景の上の黒を完全に透明に（urlのみにする） */
+            /* 背景の上の黒を完全に透明にし、back.JPGを表示 */
             background: url("back.JPG");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             
-            /* 背景が白すぎる場合のために少しだけぼかしを維持 */
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             
@@ -63,29 +62,32 @@
             border: 1px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
             text-align: center;
-            overflow: hidden;
+            /* 子要素のスクロールを阻害しないよう調整 */
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
         }
 
         h1 {
-            font-size: 1.15rem;
-            margin: 0 0 24px;
+            font-size: 1.1rem;
+            margin: 0 0 20px;
             font-weight: 800;
             letter-spacing: 0.1em;
             color: var(--text-color);
             text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(255,255,255,0.8); /* 白背景でも埋もれないように */
+            text-shadow: 0 0 10px rgba(255,255,255,0.8);
         }
 
         /* アートワーク部分 */
         .visualizer {
-            width: 156px;
-            height: 156px;
-            margin: 0 auto 24px;
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 20px;
             border-radius: 50%;
             overflow: hidden;
             border: 4px solid #fff;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            transition: transform 0.5s ease;
+            flex-shrink: 0; /* 潰れないように固定 */
         }
 
         .visualizer img {
@@ -94,7 +96,6 @@
             object-fit: cover;
         }
 
-        /* 再生中に画像を回転させるクラス */
         .playing-art {
             animation: rotate 10s linear infinite;
         }
@@ -104,13 +105,11 @@
             to { transform: rotate(360deg); }
         }
 
-        /* オーディオプレイヤーのカスタマイズ */
         audio {
             width: 100%;
-            height: 42px;
-            margin-bottom: 22px;
+            height: 40px;
+            margin-bottom: 20px;
             accent-color: var(--primary-color);
-            /* 白背景で見えやすいように明るさを調整 */
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
 
@@ -120,7 +119,7 @@
             justify-content: space-between;
             gap: 12px;
             font-size: 0.86rem;
-            margin: 0 0 18px;
+            margin: 0 0 15px;
             color: var(--text-color);
             font-weight: 600;
         }
@@ -130,7 +129,7 @@
             text-decoration: none;
             font-weight: 700;
             border: 2px solid var(--text-color);
-            padding: 6px 16px;
+            padding: 5px 14px;
             border-radius: 999px;
             transition: all 0.2s ease;
             background: rgba(255, 255, 255, 0.5);
@@ -141,25 +140,25 @@
             color: #fff;
         }
 
-        /* プレイリスト（ここを黒基調に変更） */
+        /* プレイリスト（黒基調・スクロールゾーン） */
         ul {
             list-style: none;
-            padding: 12px;
+            padding: 10px;
             margin: 0;
-            max-height: 240px;
-            overflow-y: auto;
             text-align: left;
-            
-            /* 曲名ゾーンのみ背景を黒くし、透過率を下げる */
             background: var(--playlist-bg);
             border-radius: 12px;
             box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+            
+            /* スクロール設定 */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* iPhoneの滑らかなスクロール */
+            flex-grow: 1; /* 余ったスペースをすべてリストに割り当てる */
+            touch-action: pan-y; /* 上下スクロールを許可 */
         }
 
-        /* スクロールバーのカスタマイズ */
-        ul::-webkit-scrollbar {
-            width: 4px;
-        }
+        /* スクロールバー */
+        ul::-webkit-scrollbar { width: 4px; }
         ul::-webkit-scrollbar-thumb {
             background: rgba(255,255,255,0.3);
             border-radius: 10px;
@@ -171,18 +170,15 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            color: var(--playlist-text); /* 文字を白に */
+            color: var(--playlist-text);
             font-size: 0.9rem;
+            transition: transform 0.2s;
         }
 
-        li:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateX(3px);
-        }
+        li:active { transform: scale(0.98); }
 
         li::before {
             content: '♪';
@@ -194,7 +190,6 @@
 
         li.active {
             background: var(--primary-color);
-            border: 1px solid var(--primary-color);
             color: #ffffff;
             font-weight: 700;
         }
@@ -205,24 +200,20 @@
             opacity: 1;
         }
 
+        /* モバイル最適化 */
         @media (max-width: 460px) {
-            body {
-                align-items: stretch;
-                justify-content: flex-start;
-                padding: 0;
-            }
-
+            body { padding: 0; }
             .appframe {
                 width: 100%;
                 height: 100vh;
+                max-height: 100vh;
                 border-radius: 0;
-                padding-top: 40px;
+                padding: 20px;
+                padding-top: env(safe-area-inset-top, 40px);
+                border: none;
             }
-            
             ul {
-                max-height: none;
-                flex: 1;
-                margin-bottom: 20px;
+                margin-bottom: env(safe-area-inset-bottom, 10px);
             }
         }
     </style>
@@ -233,7 +224,7 @@
         <h1>Music Player</h1>
         
         <div class="visualizer" id="artWrapper">
-            <img id="statusImg" src="stop.jpg" alt="再生状態">
+            <img id="statusImg" src="stop.JPG" alt="再生状態">
         </div>
 
         <audio id="mainAudio" controls preload="metadata"></audio>
@@ -246,15 +237,12 @@
         <ul id="playlist">
             <li data-file="廻廻奇譚_Eve.mp3" class="active"></li>
             <li data-file="青のすみか_キタニタツヤ.mp3"></li>
-
             <li data-file="SPECIALZAIZO_King Gnu.mp3"></li>
             <li data-file="AIZO_King Gnu.mp3"></li>
             <li data-file="逆夢_King Gnu.mp3"></li>
             <li data-file="一途_King Gnu.mp3"></li>
             <li data-file="カメレオン_King Gnu.mp3"></li>
-
             <li data-file="IRIS OUT_米津玄師.mp3"></li>
-
             <li data-file="Soranji_Mrs. GREEN APPLE.mp3"></li>
             <li data-file="クスシキ_Mrs. GREEN APPLE.mp3"></li>
             <li data-file="ダーリン_Mrs. GREEN APPLE.mp3"></li>
@@ -262,18 +250,15 @@
             <li data-file="ダンスホール_Mrs. GREEN APPLE.mp3"></li>
             <li data-file="ライラック_Mrs. GREEN APPLE.mp3"></li>
             <li data-file="青と夏_Mrs. GREEN APPLE.mp3"></li>
-
             <li data-file="まつり_藤井風.mp3"></li>
             <li data-file="Garden_藤井風.mp3"></li>
             <li data-file="きらり_藤井風.mp3"></li>
             <li data-file="なんなん_藤井風.mp3"></li>
             <li data-file="花_藤井風.mp3"></li>
-
             <li data-file="Subtitle_ Official髭男dism.mp3"></li>
             <li data-file="CITRUS_Da-iCE.mp3"></li>
             <li data-file="点描の唄_井上苑子.mp3"></li>
             <li data-file="Funny Bunny - pillows.mp3"></li>
-
             <li data-file="DEPARTURES_globe.mp3"></li>
             <li data-file="BLUE TEARS_JUDY AND MARY.mp3"></li>
             <li data-file="LOVER SOUL_JUDY AND MARY.mp3"></li>
@@ -289,7 +274,6 @@
     </div>
 
 <script>
-/* JS部分は元の動作を維持 */
 const audio = document.getElementById('mainAudio');
 const listitems = document.querySelectorAll('li');
 const img = document.getElementById('statusImg');
@@ -323,7 +307,7 @@ async function playMusic(li) {
     li.classList.add('active');
 
     try {
-        if (!audio.src.endsWith(file)) {
+        if (!audio.src.endsWith(encodeURIComponent(file)) && !audio.src.endsWith(file)) {
             audio.src = file;
             audio.load();
         }
@@ -333,18 +317,19 @@ async function playMusic(li) {
     }
 }
 
+// 拡張子を JPG (大文字) に統一して修正
 audio.addEventListener('play', () => {
-    img.src = 'play.jpg';
+    img.src = 'play.JPG';
     artWrapper.classList.add('playing-art');
 });
 
 audio.addEventListener('pause', () => {
-    img.src = 'stop.jpg';
+    img.src = 'stop.JPG';
     artWrapper.classList.remove('playing-art');
 });
 
 audio.addEventListener('ended', () => {
-    img.src = 'stop.jpg';
+    img.src = 'stop.JPG';
     artWrapper.classList.remove('playing-art');
     const activeLi = document.querySelector('.active');
     if (isRandomMode) {
